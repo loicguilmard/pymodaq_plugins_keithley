@@ -5,7 +5,7 @@ from pymeasure.adapters import VISAAdapter, PrologixAdapter
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base  # base class
 from pymodaq.control_modules.move_utility_classes import comon_parameters, main  # common set of parameters for all actuators
 from pymodaq.utils.daq_utils import ThreadCommand, getLineInfo
-from pymodaq.utils.logger import  set_logger, get_module_name  # object used to send info back to the main thread
+from pymodaq.utils.logger import set_logger, get_module_name  # object used to send info back to the main thread
 from pymodaq.utils.parameter.utils import iter_children
 from pyvisa import ResourceManager
 
