@@ -11,4 +11,4 @@ license = 'MIT'
 
 [plugin-install]
 #packages required for your plugin:
-packages-required = ["pyvisa", "pymeasure"]
+packages-required = ["pyvisa", "pymeasure", 'pymodaq>=4.0']
