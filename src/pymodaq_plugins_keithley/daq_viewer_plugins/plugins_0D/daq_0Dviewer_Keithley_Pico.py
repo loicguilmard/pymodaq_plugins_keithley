@@ -2,7 +2,7 @@ from qtpy.QtCore import Signal
 from easydict import EasyDict as edict
 from pymodaq.utils.daq_utils import ThreadCommand, getLineInfo
 from pymodaq.utils.data import  DataFromPlugins
-from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base
+from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base, main
 from collections import OrderedDict
 import numpy as np
 from enum import IntEnum
@@ -20,9 +20,10 @@ class DAQ_0DViewer_Keithley_Pico_type(IntEnum):
         *Pico_6514*     int
         =============== =========
     """
-    Pico_648X=0
-    Pico_6430=1
-    Pico_6514=2
+    Pico_648X = 0
+    Pico_6430 = 1
+    Pico_6514 = 2
+
     @classmethod
     def names(cls):
         return [name for name, member in cls.__members__.items()]
@@ -173,3 +174,7 @@ class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
             not implemented?
         """
         return ""
+
+
+if __name__ == '__main__':
+    main(__file__, init=False)
