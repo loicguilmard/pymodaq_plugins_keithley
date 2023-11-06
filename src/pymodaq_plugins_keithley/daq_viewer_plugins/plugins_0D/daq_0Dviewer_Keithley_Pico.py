@@ -1,15 +1,27 @@
-from qtpy.QtCore import Signal
-from easydict import EasyDict as edict
-from pymodaq.utils.daq_utils import ThreadCommand, getLineInfo
-from pymodaq.utils.data import  DataFromPlugins
-from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base, main
 from collections import OrderedDict
+
+
+from easydict import EasyDict as edict
 import numpy as np
-from enum import IntEnum
-from pymodaq.control_modules.viewer_utility_classes import comon_parameters
+from pyvisa import ResourceManager
+from qtpy.QtCore import Signal
+
+from pymodaq.utils.daq_utils import ThreadCommand, getLineInfo
+from pymodaq.utils.data import  DataFromPlugins, DataToExport
+from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base, main, comon_parameters
+from pymodaq.utils.enums import BaseEnum
 
 
-class DAQ_0DViewer_Keithley_Pico_type(IntEnum):
+
+VISA_rm = ResourceManager()
+COM_PORTS = []
+for name, rinfo in VISA_rm.list_resources_info().items():
+    if rinfo.alias is not None:
+        COM_PORTS.append(rinfo.alias)
+    else:
+        COM_PORTS.append(name)
+
+class DAQ_0DViewer_Keithley_Pico_type(BaseEnum):
     """
         Enum class of Keithley_Pico_type
 
@@ -23,10 +35,6 @@ class DAQ_0DViewer_Keithley_Pico_type(IntEnum):
     Pico_648X = 0
     Pico_6430 = 1
     Pico_6514 = 2
-
-    @classmethod
-    def names(cls):
-        return [name for name, member in cls.__members__.items()]
 
 
 class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
@@ -45,29 +53,24 @@ class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
 
     ##checking VISA ressources
 
-    from pyvisa import ResourceManager
-    VISA_rm = ResourceManager()
-    com_ports = list(VISA_rm.list_resources())
 #    import serial.tools.list_ports;
 #    com_ports=[comport.device for comport in serial.tools.list_ports.comports()]
 
-    params= comon_parameters+[
-              {'title': 'VISA:','name': 'VISA_ressources', 'type': 'list', 'limits': com_ports },
-             {'title': 'Keithley Type:','name': 'keithley_type', 'type': 'list', 'limits': DAQ_0DViewer_Keithley_Pico_type.names()},
-             {'title': 'Id:', 'name': 'id', 'type': 'text', 'value': "" },
-             {'title': 'Timeout (ms):', 'name': 'timeout', 'type': 'int', 'value': 10000, 'default': 10000, 'min': 2000 },
-             {'title': 'Configuration:', 'name': 'config', 'type': 'group', 'children':[
-                 {'title': 'Meas. type:', 'name': 'meas_type', 'type': 'list', 'value': 'CURR', 'default': 'CURR', 'limits': ['CURR','VOLT','RES','CHAR'] },
+    params = comon_parameters + [
+        {'title': 'VISA:', 'name': 'VISA_ressources', 'type': 'list', 'limits': COM_PORTS},
+        {'title': 'Keithley Type:', 'name': 'keithley_type', 'type': 'list',
+         'limits': DAQ_0DViewer_Keithley_Pico_type.names()},
+        {'title': 'Id:', 'name': 'id', 'type': 'text', 'value': ""},
+        {'title': 'Timeout (ms):', 'name': 'timeout', 'type': 'int', 'value': 10000, 'default': 10000, 'min': 2000},
+        {'title': 'Configuration:', 'name': 'config', 'type': 'group', 'children': [
+            {'title': 'Meas. type:', 'name': 'meas_type', 'type': 'list', 'value': 'CURR', 'default': 'CURR',
+             'limits': ['CURR', 'VOLT', 'RES', 'CHAR']},
 
+        ]},
+    ]
 
-                 ] },
-            ]
-
-    def __init__(self,parent=None,params_state=None):
-        super(DAQ_0DViewer_Keithley_Pico,self).__init__(parent,params_state)
-        from pyvisa import ResourceManager
-        self.VISA_rm=ResourceManager()
-        self.controller=None
+    def ini_attributes(self):
+        pass
 
     def ini_detector(self, controller=None):
         """
@@ -82,39 +85,28 @@ class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
             --------
             daq_utils.ThreadCommand
         """
-        self.status.update(edict(initialized=False,info="",x_axis=None,y_axis=None,controller=None))
-        try:
 
-            if self.settings.child(('controller_status')).value()=="Slave":
-                if controller is None: 
-                    raise Exception('no controller has been defined externally while this detector is a slave one')
-                else:
-                    self.controller=controller
-            else:
-                self.controller=self.VISA_rm.open_resource(self.settings.child(('VISA_ressources')).value(), read_termination='\r')
+        self.controller = self.ini_detector_init(old_controller=controller,
+                                                 new_controller=
+                                                 VISA_rm.open_resource(
+                                                     self.settings['VISA_ressources'], read_termination='\r'))
 
-            self.controller.timeout=self.settings.child(('timeout')).value()
+        self.controller.timeout = self.settings['timeout']
 
-            self.controller.write("*rst; status:preset; *cls;")
-            txt=self.controller.query('*IDN?')
-            self.settings.child(('id')).setValue(txt)
-            self.controller.write('CONF:'+self.settings.child('config','meas_type').value())
-            self.controller.write(':FORM:ELEM READ;DATA ASC;')
-            self.controller.write('ARM:SOUR IMM;')
-            self.controller.write('ARM:COUNt 1;')
-            self.controller.write('TRIG:SOUR IMM;')
-            #%%
-            data=self.controller.query_ascii_values('READ?')
+        self.controller.write("*rst; status:preset; *cls;")
+        txt = self.controller.query('*IDN?')
+        self.settings.child(('id')).setValue(txt)
+        self.controller.write('CONF:' + self.settings.child('config', 'meas_type').value())
+        self.controller.write(':FORM:ELEM READ;DATA ASC;')
+        self.controller.write('ARM:SOUR IMM;')
+        self.controller.write('ARM:COUNt 1;')
+        self.controller.write('TRIG:SOUR IMM;')
+        # %%
+        data = self.controller.query_ascii_values('READ?')
 
-            self.status.initialized=True
-            self.status.controller=self.controller
-            return self.status
-
-        except Exception as e:
-            self.emit_status(ThreadCommand('Update_Status',[getLineInfo()+ str(e),'log']))
-            self.status.info=getLineInfo()+ str(e)
-            self.status.initialized=False
-            return self.status
+        self.status.initialized = True
+        self.status.controller = self.controller
+        return self.status
 
 
     def commit_settings(self, param):
@@ -131,20 +123,21 @@ class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
             daq_utils.ThreadCommand
         """
         try:
-            if param.name()=='timeout':
-                self.controller.timeout=self.settings.child(('timeout')).value()
-            elif param.name()=='meas_type':
-                self.controller.write('CONF:'+param.value())
+            if param.name() == 'timeout':
+                self.controller.timeout = self.settings.child(('timeout')).value()
+            elif param.name() == 'meas_type':
+                self.controller.write('CONF:' + param.value())
 
 
         except Exception as e:
-            self.emit_status(ThreadCommand('Update_Status',[getLineInfo()+ str(e),'log']))
+            self.emit_status(ThreadCommand('Update_Status', [getLineInfo() + str(e), 'log']))
 
     def close(self):
         """
             close the current instance of Keithley viewer.
         """
-        self.controller.close()
+        if self.controller is not None:
+            self.controller.close()
 
     def grab_data(self, Naverage=1, **kwargs):
         """
@@ -157,17 +150,16 @@ class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
             *Naverage*      int       Number of values to average
             =============== ======== ===============================================
         """
-        data_tot=[]
+        data_tot = []
         self.controller.write('ARM:SOUR IMM;')
         self.controller.write('ARM:COUNt 1;')
         self.controller.write('TRIG:SOUR IMM;')
         self.controller.write('TRIG:COUN {:};'.format(Naverage))
-        data_tot=self.controller.query_ascii_values('READ?')
-        #for ind in range(Naverage):
+        data_tot = self.controller.query_ascii_values('READ?')
+        # for ind in range(Naverage):
         #    data_tot.append(self.controller.query_ascii_values('READ?')[0])
-        data_tot=[np.array([np.mean(np.array(data_tot))])]
-        self.data_grabed_signal.emit([DataFromPlugins(name='Keithley',data=data_tot, dim='Data0D')])
-
+        dwa = DataFromPlugins(name='Keithley', data=[np.array([np.mean(np.array(data_tot))])])
+        self.dte_signal.emit(DataToExport('Keithley', data=[dwa]))
 
     def stop(self):
         """
