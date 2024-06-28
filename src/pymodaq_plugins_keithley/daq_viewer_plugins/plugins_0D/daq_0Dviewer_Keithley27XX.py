@@ -207,7 +207,7 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
                 labels = 'Front input'
             elif self.panel == 'REAR':
                 labels = [Chan_to_plot[i] for i in range(len(Chan_to_plot))]
-            data = DataToExport(name='keithley',
+            dte = DataToExport(name='keithley',
                                 data=[DataFromPlugins(name=Label,
                                                       data=[np.array([data_measurement[i]]) for i in
                                                             range(len(data_measurement))],
@@ -227,7 +227,7 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
             #             print(' dict chan value[str(chan)]', dict_chan_value[str(chan)])
             # print('***************** DEBUG OUT ********************\n')
 
-            data = DataToExport(name='keithley',
+            dte = DataToExport(name='keithley',
                                 data=[DataFromPlugins(name=dict_label_mode[key],
                                                       data=[np.array([dict_chan_value[str(chan)]]) for chan in
                                                             self.controller.modes_channels_dict.get(key)],
@@ -237,7 +237,7 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
                                                       ) for key in self.controller.modes_channels_dict.keys() if
                                       self.controller.modes_channels_dict.get(key) != []])
 
-        self.dte_signal.emit(data)
+        self.dte_signal.emit(dte)
 
     def stop(self):
         """Stop the current grab hardware wise if necessary"""
