@@ -6,10 +6,10 @@ Created the 31/08/2023, updated the 19/06/2024
 """
 import os
 from pathlib import Path
-from pymodaq.utils.logger import set_logger
+from pymodaq.utils.logger import set_logger, get_module_name
 from pymodaq.utils.config import BaseConfig, USER
 import pymodaq_plugins_keithley as plugin
-logger = set_logger('plugin.utils', add_to_console=False)
+logger = set_logger(get_module_name(__file__))
 
 class Config(BaseConfig):
     """Main class to deal with configuration values for this plugin"""
@@ -23,7 +23,6 @@ class Config_keithley(BaseConfig):
 
 resources_path = plugin.__path__[0]+"/resources"
 toml_modules = [f for f in os.listdir(resources_path) if "module" in f and ".toml" in f]
-print("--- Modules conf files:",toml_modules)
 logger.info("--- Modules conf files: {}" .format(toml_modules))
 
 for file in toml_modules:

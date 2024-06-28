@@ -1,9 +1,9 @@
 import os
 from pathlib import Path
-from pymodaq.utils.logger import set_logger
+from pymodaq.utils.logger import set_logger, get_module_name
 import pymodaq_plugins_keithley as plugin
 import pymodaq_plugins_keithley.utils as utils
-logger = set_logger('plugin.__init__', add_to_console=False)
+logger = set_logger(get_module_name(__file__))
 
 from pymodaq_plugins_keithley.utils import Config_keithley
 config = utils.Config()

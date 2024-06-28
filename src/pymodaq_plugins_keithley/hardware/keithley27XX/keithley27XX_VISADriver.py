@@ -2,6 +2,8 @@ import os
 import numpy as np
 import pyvisa as visa
 import pymodaq_plugins_keithley as plugin
+from pymodaq.utils.logger import set_logger, get_module_name
+logger = set_logger(get_module_name(__file__))
 
 class Keithley27XXVISADriver:
     """VISA class driver for the Keithley 27XX Multimeter/Switch System
@@ -22,7 +24,7 @@ class Keithley27XXVISADriver:
     toml_modules = [f for f in os.listdir(resources_path) if "module" in f and ".toml" in f]
     for file in toml_modules:
         exec("all_config[" + str(file[-9:-5]) + "] = plugin.config_k" + str(file[-9:-5]))
-        print("*** config rsrcname {}: {}" .format(str(file[-9:-5]),all_config.get(int(file[-9:-5]))('INSTRUMENT').get('rsrc_name')))
+        logger.info("*** config rsrcname {}: {}" .format(str(file[-9:-5]), all_config.get(int(file[-9:-5]))('INSTRUMENT').get('rsrc_name')))
     
     K_config = None
 
@@ -51,7 +53,7 @@ class Keithley27XXVISADriver:
         :param pyvisa_backend: Expects a pyvisa backend identifier or a path to the visa backend dll (ref. to pyvisa)
         :type pyvisa_backend: string
         """
-        print("Hardware initialized")
+        logger.info("Hardware initialized")
 
         # Open connexion with instrument
         rm = visa.highlevel.ResourceManager(pyvisa_backend)
@@ -65,15 +67,15 @@ class Keithley27XXVISADriver:
         model = int(self.get_idn()[32:36])
         card = int(self.get_card().split(',')[0])
         if not "27" in str(model):
-            print("Keithley instrument {} model is not supported" .format(model))
+            logger.info("Keithley instrument {} model is not supported" .format(model))
         elif not card in self.all_config.keys():
-            print("Switching module {} is not supported" .format(card))
-            print("config_module1111 loaded")
+            logger.info("Switching module {} is not supported" .format(card))
+            logger.info("config_module1111 loaded")
             self.K_config = self.all_config.get(1111)
         else:
             self.K_config = self.all_config.get(card)
 
-        print("K_config :",self.K_config)
+        logger.info("K_config : {}" .format(self.K_config))
 
         if self.K_config('MODULE','module_name') in self.non_amp_modules_list:
             self.non_amp_module = True
@@ -86,8 +88,8 @@ class Keithley27XXVISADriver:
         :raises TypeError: Channel section of configuration file not correctly defined, each channel should be a dictionary
         :raises ValueError: Channel not correctly defined, it should at least contain a key called "mode"
         """
-        print('\n********** CONFIGURATION SEQUENCE INITIALIZED **********')
-        print('Acquisition card = ', self.K_config('MODULE','module_name'))
+        logger.info("\n********** CONFIGURATION SEQUENCE INITIALIZED **********")
+        logger.info("Acquisition card = {}" .format(self.K_config('MODULE', 'module_name')))
 
         self.reset()
         self.clear_buffer()
@@ -98,15 +100,15 @@ class Keithley27XXVISADriver:
 
             # Handling user mistakes if the channels configuration section is not correctly set up
             if not type(self.K_config('CHANNELS',key))==dict:
-                print("Channel %s not correctly defined, must be a dictionary" % key)
+                logger.info("Channel {} not correctly defined, must be a dictionary" .format(key))
                 continue
             if not self.K_config('CHANNELS',key):
                 continue
             if not "mode" in self.K_config('CHANNELS',key):
-                print("Channel %s not fully defined, 'mode' is missing" % key)
+                logger.info("Channel {} not fully defined, 'mode' is missing" .format(key))
                 continue
             if self.K_config('CHANNELS',key).get('mode').upper() not in self.modes_channels_dict.keys():
-                print("Channel %s not correctly defined, mode not recognized" % key)
+                logger.info("Channel {} not correctly defined, mode not recognized" .format(key))
                 continue
 
             # Channel mode
@@ -147,8 +149,7 @@ class Keithley27XXVISADriver:
                     self.mode_temp_frtd(channel,transducer,frtd_type)
 
             # Console info
-            print('Channel %s \n %s' % (key,self.K_config('CHANNELS',key)))
-
+            logger.info("Channels {} \n {}".format(key,self.K_config('CHANNELS',key)))
             # Timeout update for long measurement modes such as voltage AC
             if "AC" in mode:
                 self._instr.timeout += 4000
@@ -159,13 +160,13 @@ class Keithley27XXVISADriver:
                 if current_error != '0,"No error"':
                     raise ValueError("The following error has been raised by the Keithley: %s => Pease refer to the User Manual to correct it\n\
                                      Note: To make sure channels are well configured in the .toml file, refer to section 15 'SCPI Reference Tables', Table 15-5" % current_error)
-            except Exception as e:
-                print(e)
+            except Exception as err:
+                logger.info("{}".format(err))
                 pass
         
         self.current_mode = 'scan_list'
         self.channels_scanlist =  channels[:-1]
-        print('********** CONFIGURATION SEQUENCE SUCCESSFULLY ENDED **********\n')
+        logger.info("********** CONFIGURATION SEQUENCE SUCCESSFULLY ENDED **********")
 
     def clear_buffer(self):
         # Default: auto clear when scan start
@@ -192,7 +193,6 @@ class Keithley27XXVISADriver:
         - The timestamp of each measurement (numpy array)
         """
         if self.sample_count_1 == False:
-            print(self.sample_count_1)
             # Initiate scan
             self._instr.write("INIT")
             # Trigger scan
@@ -347,7 +347,7 @@ class Keithley27XXVISADriver:
                     self._instr.write("ROUT:CLOS " + channels)
                     
                     self._instr.write("FUNC '" + mode + "'")
-                    print("rear sample count", self.sample_count_1)
+                    logger.info("rear sample count: {}".format(self.sample_count_1))
                     if self.sample_count_1 != True:
                         self.sample_count_1 = True
                     self.reading_scan_list = False

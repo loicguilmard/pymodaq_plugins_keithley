@@ -5,6 +5,8 @@ from pymodaq.utils.daq_utils import ThreadCommand
 from pymodaq.utils.data import DataFromPlugins, DataToExport
 from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base, comon_parameters, main
 from pymodaq.utils.parameter import Parameter
+from pymodaq.utils.logger import set_logger, get_module_name
+logger = set_logger(get_module_name(__file__))
 
 import pymodaq_plugins_keithley as plugin
 from pymodaq_plugins_keithley.hardware.keithley27XX.keithley27XX_VISADriver import Keithley27XXVISADriver as Keithley
@@ -47,7 +49,7 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
     # Read configuration file
     panel = all_config["base"]('INSTRUMENT').get('panel').upper()
     resources_list = [rsrc("INSTRUMENT").get("rsrc_name") for key, rsrc in list(all_config.items()) if key != "base"]
-    print("resources list = ", resources_list)
+    logger.info("resources list = {}" .format(resources_list))
 
     if panel == 'FRONT':
         params = comon_parameters + [
@@ -80,7 +82,7 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
 
     def ini_attributes(self):
         """Attributes init when DAQ_0DViewer_Keithley class is instancied"""
-        print("Panel configuration 0D_viewer: ", self.panel)
+        logger.info("Panel configuration 0D_viewer: " .format(self.panel))
         self.channels_in_selected_mode = None
 
     def commit_settings(self, param: Parameter):
@@ -107,11 +109,10 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
         :return: Initialization status, false if it failed otherwise True
         :rtype: bool
         """
-        print('Detector 0D initialized')
+        logger.info("Detector 0D initialized")
 
         self.status.update(edict(initialized=False, info="", x_axis=None, y_axis=None, controller=None))
         if self.settings.child(('controller_status')).value() == "Slave":
-            print("ok slave")
             if controller is None:
                 raise Exception('no controller has been defined externally while this detector is a slave one')
             else:
@@ -151,8 +152,8 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
             self.controller.configuration_sequence()
             value = 'SCAN_' + self.settings.child('Keithley_Params', 'rearpanel', 'rearmode').value()
             self.channels_in_selected_mode = self.controller.set_mode(value)
-            print('Channels to plot :', self.channels_in_selected_mode)
-        print('DAQ_viewer command sent to keithley visa driver :', value)
+            logger.info("Channels to plot : {}" .format(self.channels_in_selected_mode))
+        logger.info("DAQ_viewer command sent to keithley visa driver : {}" .format(value))
 
         self.status.initialized = True
         self.status.controller = self.controller
@@ -162,7 +163,7 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
     def close(self):
         """Terminate the communication protocol"""
         self.controller.close()
-        print('communication ended successfully')
+        logger.info("communication ended successfully")
 
     def grab_data(self, Naverage=1, **kwargs):
         """Start a grab from the detector
@@ -179,7 +180,7 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
             data_tot = self.controller.data()
             data_measurement = data_tot[1]
         elif self.panel == 'REAR':
-            print('current mode', self.controller.current_mode)
+            # print('current mode', self.controller.current_mode)
             channels_in_selected_mode = self.channels_in_selected_mode[1:-1].replace('@', '')
             Chan_to_plot = []
             data_tot = self.controller.data()
@@ -189,10 +190,10 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
             # Affect each value to the corresponding channel
             dict_chan_value = dict(zip(channels_in_selected_mode.split(','), data_measurement))
 
-            print('Chan :', Chan_to_plot)
-            print('dict chan value : ', dict_chan_value)
-        print('Data tot :', data_tot)
-        print('Data measurement :', data_measurement)
+            #     print('Chan :', Chan_to_plot)
+            #     print('dict chan value : ', dict_chan_value)
+            # print('Data tot :', data_tot)
+            # print('Data measurement :', data_measurement)
 
         # Dictionary linking channel's modes to physical quantities
         dict_label_mode = {'VOLT:DC': 'Voltage', 'VOLT:AC': 'Voltage', 'CURR:DC': 'Current', 'CURR:AC': 'Current',
