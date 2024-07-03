@@ -52,3 +52,4 @@ Check the <user>/.pymodaq folder which contains all the user's configuration fil
 - If your module exists, open it and fill the fields with your instrument/module configuration.
 
 - If it doesn't, open the module_1111 which is specially dedicated to not supported yet modules.
+
