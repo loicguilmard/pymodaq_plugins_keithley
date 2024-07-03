@@ -1,6 +1,0 @@
-title = "Config file for the keithley plugin using a Keithley 27XX Multimeter/Switch System"
-
-termination_character = "Keithley must be set to LF"
-
-[INSTRUMENT]
-panel = "rear"

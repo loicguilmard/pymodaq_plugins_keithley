@@ -1,18 +1,8 @@
-import os
 from pathlib import Path
-from pymodaq.utils.logger import set_logger, get_module_name
-import pymodaq_plugins_keithley as plugin
-import pymodaq_plugins_keithley.utils as utils
-logger = set_logger(get_module_name(__file__))
+from pymodaq.utils.logger import set_logger  # to be imported by other modules.
 
-from pymodaq_plugins_keithley.utils import Config_keithley
-config = utils.Config()
-config_keithley = utils.Config_keithley()
-
-resources_path = plugin.__path__[0]+"/resources"
-toml_modules = [f for f in os.listdir(resources_path) if "module" in f and ".toml" in f]
-for file in toml_modules:
-    exec("config_k" + str(file[-9:-5]) + " = " + "utils.Config_k" + str(file[-9:-5]) + "()")
+from .utils import Config
+config = Config()
 
 with open(str(Path(__file__).parent.joinpath('resources/VERSION')), 'r') as fvers:
     __version__ = fvers.read().strip()
