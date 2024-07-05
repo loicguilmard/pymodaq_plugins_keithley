@@ -15,15 +15,15 @@ termination_character = "Keithley must be set to LF"
 
 [Keithley.27XX.INSTRUMENT01.MODULE01]
 module_name = ""
+info = "Channels 201 & 202 configured using thermocouple by default"
 
 [Keithley.27XX.INSTRUMENT01.MODULE02]
 module_name = ""
+info = "Channels 201 & 202 configured using thermocouple by default"
 
 [Keithley.27XX.INSTRUMENT01.MODULE01.CHANNELS]
-title = "Channels 101 & 102 configured using thermocouple by default"
 
 [Keithley.27XX.INSTRUMENT01.MODULE02.CHANNELS]
-title = "Channels 201 & 202 configured using thermocouple by default"
 
 [Keithley.27XX.INSTRUMENT01.MODULE01.CHANNELS.101]
 mode = "temp"
