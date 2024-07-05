@@ -22,54 +22,59 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
     :type params: dictionary list
     """
     rsrc_name: str
+    instr: str
+    panel: str
     channels_in_selected_mode: str
     resources_list = []
     
     # Read configuration file
-    panel = config["Keithley", "27XX", "INSTRUMENT01", "panel"].upper()
     for instr in config["Keithley", "27XX"].keys():
         if "INSTRUMENT" in instr:
             resources_list += [config["Keithley", "27XX", instr, "rsrc_name"]]
     logger.info("resources list = {}" .format(resources_list))
 
-    if panel == 'FRONT':
-        params = comon_parameters + [
-            {'title': 'Resources', 'name': 'resources', 'type': 'list', 'limits': resources_list,
-             'value': resources_list[0]},
-            {'title': 'Keithley', 'name': 'Keithley_Params', 'type': 'group', 'children': [
-                {'title': 'ID', 'name': 'ID', 'type': 'text', 'value': ''},
-                {'title': 'FRONT panel', 'name': 'frontpanel', 'type': 'group', 'children': [
-                    {'title': 'Mode', 'name': 'frontmode', 'type': 'list',
-                     'limits': ['VOLT:DC', 'VOLT:AC', 'CURR:DC', 'CURR:AC', 'RES', 'FRES', 'FREQ', 'TEMP'],
-                     'value': 'VOLT:DC'}]}
-            ]}
-        ]
-    elif panel == 'REAR':
-        params = comon_parameters + [
-            {'title': 'Resources', 'name': 'resources', 'type': 'list', 'limits': resources_list,
-             'value': resources_list[0]},
-            {'title': 'Keithley', 'name': 'Keithley_Params', 'type': 'group', 'children': [
-                {'title': 'ID', 'name': 'ID', 'type': 'text', 'value': ''},
-                {'title': 'REAR panel', 'name': 'rearpanel', 'type': 'group', 'children': [
-                    {'title': 'Mode', 'name': 'rearmode', 'type': 'list',
-                     'limits': ['SCAN_LIST', 'VOLT:DC', 'VOLT:AC', 'CURR:DC', 'CURR:AC', 'RES', 'FRES', 'FREQ', 'TEMP'],
-                     'value': 'SCAN_LIST'}
-                ]}
-            ]}
-        ]
+    params = comon_parameters + [
+        {'title': 'Resources', 'name': 'resources', 'type': 'list', 'limits': resources_list,
+         'value': resources_list[0]},
+        {'title': 'Keithley', 'name': 'Keithley_Params', 'type': 'group', 'children': [
+            {'title': 'Panel', 'name': 'panel', 'type': 'list', 'limits': ['select panel to use', 'FRONT', 'REAR'],
+             'value': 'select panel to use'},
+            {'title': 'ID', 'name': 'ID', 'type': 'text', 'value': ''},
+            {'title': 'FRONT panel', 'name': 'frontpanel', 'visible': False, 'type': 'group', 'children': [
+                {'title': 'Mode', 'name': 'frontmode', 'type': 'list',
+                 'limits': ['VOLT:DC', 'VOLT:AC', 'CURR:DC', 'CURR:AC', 'RES', 'FRES', 'FREQ', 'TEMP'],
+                 'value': 'VOLT:DC'},
+            ]},
+            {'title': 'REAR panel', 'name': 'rearpanel', 'visible': False, 'type': 'group', 'children': [
+                {'title': 'Mode', 'name': 'rearmode', 'type': 'list',
+                 'limits': ['SCAN_LIST', 'VOLT:DC', 'VOLT:AC', 'CURR:DC', 'CURR:AC', 'RES', 'FRES', 'FREQ', 'TEMP'],
+                 'value': 'SCAN_LIST'}
+            ]},
+        ]},
+    ]
 
     def __init__(self, parent=None, params_state=None):
         super().__init__(parent, params_state)
 
     def ini_attributes(self):
         """Attributes init when DAQ_0DViewer_Keithley class is instanced"""
-        logger.info("Panel configuration 0D_viewer: " .format(self.panel))
         self.controller: Keithley = None
         self.channels_in_selected_mode = None
         self.rsrc_name = None
+        self.panel = None
+        self.instr = None
 
     def commit_settings(self, param: Parameter):
         """Apply the consequences of a change of value in the detector settings"""
+        if param.name() == 'panel':
+            for limit in ['REAR', 'FRONT']:
+                if not limit == param.value():
+                    if param.value() == 'select panel to use':
+                        self.settings.child('Keithley_Params', 'frontpanel').show()
+                        self.settings.child('Keithley_Params', 'rearpanel').show()
+                    else:
+                        self.settings.child('Keithley_Params', param.value().lower() + param.name()).show()
+                        self.settings.child('Keithley_Params', limit.lower() + param.name()).hide()
         if 'mode' in param.name():
             """Updates the newly selected measurement mode"""
             # Read the configuration file to determine which mode to use and send corresponding instruction to driver
@@ -79,6 +84,12 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
             elif self.panel == 'REAR':
                 value = 'SCAN_' + param.value()
                 self.channels_in_selected_mode = self.controller.set_mode(value)
+            current_error = self.controller.get_error()
+            if current_error != '0,"No error"':
+                logger.error("The following error has been raised by the Keithley:\
+                        {} => Please refer to the User Manual to correct it\n\
+                        Note: To make sure channels are well configured in the .toml file,\
+                        refer to section 15 'SCPI Reference Tables', Table 15-5" .format(current_error))
         if 'CURR' in param.value():
             """Verify if the switching modules support current measurement"""
             if self.controller.non_amp_module["MODULE01"] and self.controller.non_amp_module["MODULE02"]:
@@ -111,10 +122,14 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
                     if "INSTRUMENT" in instr:
                         if config["Keithley", "27XX", instr, "rsrc_name"] == self.settings["resources"]:
                             self.rsrc_name = config["Keithley", "27XX", instr, "rsrc_name"]
-                assert(self.rsrc_name is not None)
+                            self.panel = config["Keithley", "27XX", instr, "panel"].upper()
+                            self.instr = instr
+                            logger.info("Panel configuration 0D_viewer: {}" .format(self.panel))
+                assert self.rsrc_name is not None, "rsrc_name"
+                assert self.panel is not None, "panel"
                 self.controller = Keithley(self.rsrc_name)
-            except AssertionError as a:
-                logger.error("{}: rsrc_name did not match any configuration" .format(str(a)))
+            except AssertionError as err:
+                logger.error("{}: {} did not match any configuration".format(type(err), str(err)))
             except Exception as e:
                 raise Exception('No controller could be defined because an error occurred \
                 while connecting to the instrument. Error: {}'.format(str(e)))
@@ -126,10 +141,13 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
 
         # Initialize detector communication and set the default value (SCAN_LIST)
         if self.panel == 'FRONT':
+            self.settings.child('Keithley_Params', 'rearpanel').visible = False
             value = self.settings.child('Keithley_Params', 'frontpanel', 'frontmode').value()
             self.controller.current_mode = value
             self.controller.set_mode(value)
         elif self.panel == 'REAR':
+            self.settings.child('Keithley_Params', 'frontpanel').visible = False
+            self.settings.child('Keithley_Params', 'frontpanel').value = 'REAR'
             self.controller.configuration_sequence()
             value = 'SCAN_' + self.settings.child('Keithley_Params', 'rearpanel', 'rearmode').value()
             self.channels_in_selected_mode = self.controller.set_mode(value)
