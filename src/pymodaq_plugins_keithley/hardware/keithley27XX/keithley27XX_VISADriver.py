@@ -411,46 +411,24 @@ class Keithley27XXVISADriver:
                 print(self._instr.query(command))
             else:
                 self._instr.write(command)
+            self.user_command()
+        else:
+            pass
 
 
 if __name__ == "__main__":
     try:
         print("In main")
-        
+
+        # You can use this main section for:
+        # - Testing connexion and communication with your instrument
+        # - Testing new methods in developer mode
+
         RM = visa.ResourceManager("@ivi")
         print("list resources", RM.list_resources())
 
-        # K2701 Instance of KeithleyVISADriver class
-        k2701 = Keithley27XXVISADriver("TCPIP::192.168.40.41::1394::SOCKET")
-        k2701.init_hardware()
-        print("IDN?")
-        print(k2701.get_idn())
-        k2701.reset()
-        k2701.configuration_sequence()
-
-        # Daq_viewer simulation first run
-        k2701.set_mode(str(input('Enter which mode you want to scan \
-        [scan_scan_list, scan_volt:dc, scan_r2w, scan_temp...]:')))
-        print('Manual scan example: >init >*trg >trac:data?')
-        k2701.user_command()
-        for i in range(2):
-            print(k2701.data())
-        print(k2701.data())
-
-        # Daq_viewer simulation change mode
-        k2701.user_command()
-        k2701.set_mode(str(input('Enter which mode you want to scan \
-        [scan_scan_list, scan_volt:dc, scan_r2w, scan_temp...]:')))
-        print('Manual scan example: >init >*trg >trac:data?')
-        for i in range(2):
-            print(k2701.data())
-        print(k2701.data())
-
-        k2701.clear_buffer()
-        k2701.close()
-
-        # K2700 Instance of KeithleyVISADriver class
-        k2700 = Keithley27XXVISADriver("ASRL3::INSTR")
+        # K2700 Instance of KeithleyVISADriver class (replace ASRL1::INSTR by the name of your resource)
+        k2700 = Keithley27XXVISADriver("ASRL1::INSTR")
         k2700.init_hardware()
         print("IDN?")
         print(k2700.get_idn())
@@ -460,17 +438,16 @@ if __name__ == "__main__":
         # Daq_viewer simulation first run
         k2700.set_mode(str(input('Enter which mode you want to scan \
         [scan_scan_list, scan_volt:dc, scan_r2w, scan_temp...]:')))
-        print('Manual scan example: >init >*trg >trac:data?')
+        print('Manual scan example of command set to send directly: >init >*trg >trac:data?')
         k2700.user_command()
+        print('Automatic scan example with 2 iterations')
         for i in range(2):
             print(k2700.data())
         print(k2700.data())
 
         # Daq_viewer simulation change mode
-        k2700.user_command()
         k2700.set_mode(str(input('Enter which mode you want to scan \
         [scan_scan_list, scan_volt:dc, scan_r2w, scan_temp...]:')))
-        print('Manual scan example: >init >*trg >trac:data?')
         for i in range(2):
             print(k2700.data())
         print(k2700.data())
