@@ -179,7 +179,6 @@ class DAQ_0DViewer_Keithley27XX(DAQ_Viewer_base):
             data_tot = self.controller.data()
             data_measurement = data_tot[1]
         elif self.panel == 'REAR':
-            # print('current mode', self.controller.current_mode)
             channels_in_selected_mode = self.channels_in_selected_mode[1:-1].replace('@', '')
             chan_to_plot = []
             data_tot = self.controller.data()

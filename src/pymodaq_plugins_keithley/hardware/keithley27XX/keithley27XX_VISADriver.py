@@ -130,9 +130,6 @@ class Keithley27XXVISADriver:
 
         # The following loop set up each channel in the config file
         for module in self.configured_modules:
-            print(self.instr)
-            print(module)
-            print(config["Keithley", "27XX", self.instr, module, "CHANNELS"].keys())
             for key in config["Keithley", "27XX", self.instr, module, "CHANNELS"].keys():
 
                 # Handling user mistakes if the channels' configuration section is not correctly set up
@@ -426,10 +423,8 @@ if __name__ == "__main__":
         # K2701 Instance of KeithleyVISADriver class
         k2701 = Keithley27XXVISADriver("TCPIP::192.168.40.41::1394::SOCKET")
         k2701.init_hardware()
-
         print("IDN?")
         print(k2701.get_idn())
-
         k2701.reset()
         k2701.configuration_sequence()
 
@@ -438,7 +433,6 @@ if __name__ == "__main__":
         [scan_scan_list, scan_volt:dc, scan_r2w, scan_temp...]:')))
         print('Manual scan example: >init >*trg >trac:data?')
         k2701.user_command()
-
         for i in range(2):
             print(k2701.data())
         print(k2701.data())
@@ -448,7 +442,6 @@ if __name__ == "__main__":
         k2701.set_mode(str(input('Enter which mode you want to scan \
         [scan_scan_list, scan_volt:dc, scan_r2w, scan_temp...]:')))
         print('Manual scan example: >init >*trg >trac:data?')
-
         for i in range(2):
             print(k2701.data())
         print(k2701.data())
@@ -456,14 +449,11 @@ if __name__ == "__main__":
         k2701.clear_buffer()
         k2701.close()
 
-        print("2nd instance")
         # K2700 Instance of KeithleyVISADriver class
         k2700 = Keithley27XXVISADriver("ASRL3::INSTR")
         k2700.init_hardware()
-
         print("IDN?")
         print(k2700.get_idn())
-        
         k2700.reset()
         k2700.configuration_sequence()
 
@@ -472,7 +462,6 @@ if __name__ == "__main__":
         [scan_scan_list, scan_volt:dc, scan_r2w, scan_temp...]:')))
         print('Manual scan example: >init >*trg >trac:data?')
         k2700.user_command()
-
         for i in range(2):
             print(k2700.data())
         print(k2700.data())
@@ -482,7 +471,6 @@ if __name__ == "__main__":
         k2700.set_mode(str(input('Enter which mode you want to scan \
         [scan_scan_list, scan_volt:dc, scan_r2w, scan_temp...]:')))
         print('Manual scan example: >init >*trg >trac:data?')
-
         for i in range(2):
             print(k2700.data())
         print(k2700.data())
