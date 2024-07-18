@@ -78,25 +78,22 @@ class Keithley27XXVISADriver:
                 # Load the configuration matching the selected module
                 cards = self.get_card().split(',')
                 logger.info("card : {}".format(cards))
-                for card in cards:
-                    try:
-                        if card not in config["Keithley", "27XX", self.instr, "MODULE01", "module_name"]:
-                            try:
-                                if card not in config["Keithley", "27XX", self.instr, "MODULE02", "module_name"]:
-                                    logger.info("Switching module {} does not match any configured module".format(card))
-                                else:
-                                    assert (config["Keithley", "27XX", self.instr, "MODULE02", "module_name"] == card)
-                                    self.configured_modules["MODULE02"] = card
-                            except KeyError as err:
-                                logger.error("{}: configuration {} does not exist.".format(KeyError, err))
-                        else:
-                            assert(config["Keithley", "27XX", self.instr, "MODULE01", "module_name"] == card)
-                            self.configured_modules["MODULE01"] = card
-                    except KeyError as err:
-                        logger.error("{}: configuration {} does not exist." .format(KeyError, err))
-                    except AssertionError:
-                        logger.error(
-                            "{}: Switching module {} does not match any configuration".format(AssertionError, cards))
+                try:
+                    assert config["Keithley", "27XX", self.instr, "MODULE01", "module_name"] == cards[0], cards[0]
+                    self.configured_modules["MODULE01"] = cards[0]
+                except KeyError as err:
+                    logger.error("{}: configuration {} does not exist.".format(KeyError, err))
+                except AssertionError as err:
+                    logger.error("{}: Switching module {} does not match any configuration".format(
+                        AssertionError, str(err)))
+                try:
+                    assert config["Keithley", "27XX", self.instr, "MODULE02", "module_name"] == cards[1], cards[1]
+                    self.configured_modules["MODULE02"] = cards[1]
+                except KeyError as err:
+                    logger.error("{}: configuration {} does not exist." .format(KeyError, err))
+                except AssertionError as err:
+                    logger.error("{}: Switching module {} does not match any configuration".format(
+                        AssertionError, str(err)))
                 logger.info("Configured modules : {}".format(self.configured_modules))
                 try:
                     if config["Keithley", "27XX", self.instr, 'MODULE01', 'module_name']\
@@ -122,7 +119,7 @@ class Keithley27XXVISADriver:
         :raises TypeError: Channel section of configuration file not correctly defined, each channel should be a dict
         :raises ValueError: Channel not correctly defined, it should at least contain a key called "mode"
         """
-        logger.info("\n********** CONFIGURATION SEQUENCE INITIALIZED **********")
+        logger.info("       ********** CONFIGURATION SEQUENCE INITIALIZED **********")
 
         self.reset()
         self.clear_buffer()
@@ -204,7 +201,7 @@ class Keithley27XXVISADriver:
         
         self.current_mode = 'scan_list'
         self.channels_scan_list = channels[:-1]
-        logger.info("********** CONFIGURATION SEQUENCE SUCCESSFULLY ENDED **********")
+        logger.info("       ********** CONFIGURATION SEQUENCE SUCCESSFULLY ENDED **********")
 
     def clear_buffer(self):
         # Default: auto clear when scan start
