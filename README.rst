@@ -43,13 +43,4 @@ Viewer0D
 
 * **Keithley_Pico**: Pico-Amperemeter Keithley 648X Series, 6430 and 6514
 * **Keithley2110**: Multimeter Keithley  2110
-* **Keithley27XX**: Keithley 27XX Multimeter/Switch System using SCPI commands (tested with models 2700 & 2701)
-
-
-The Keithley27XX viewer aims to use different switching modules (=acquisition cards) such as module 7706 or 7708.
-Check the <user>/.pymodaq folder which contains all the user's configuration files for supported modules:
-
-- If your module exists, open it and fill the fields with your instrument/module configuration.
-
-- If it doesn't, open the module_1111 which is specially dedicated to not supported yet modules.
-
+* **Keithley27XX**: Keithley 27XX Multimeter/Switch System using switching modules from the 7700 series.
