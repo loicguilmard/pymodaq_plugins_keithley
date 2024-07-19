@@ -19,12 +19,14 @@ Authors
 =======
 
 * Sebastien J. Weber
+* Sébastien Guerrero  (sebastien.guerrero@insa-lyon.fr)
 
 Contributors
 ============
 
 * Nicolas Bruyant
-
+* Loïc Guilmard (loic.guilmard@insa-lyon.fr)
+* Anthony Buthod (anthony.buthod@insa-lyon.fr)
 
 Instruments
 ===========
@@ -41,6 +43,4 @@ Viewer0D
 
 * **Keithley_Pico**: Pico-Amperemeter Keithley 648X Series, 6430 and 6514
 * **Keithley2110**: Multimeter Keithley  2110
-
-
-
+* **Keithley27XX**: Keithley 27XX Multimeter/Switch System using switching modules from the 7700 series.
