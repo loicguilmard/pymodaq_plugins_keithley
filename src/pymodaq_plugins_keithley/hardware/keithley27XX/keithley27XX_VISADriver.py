@@ -49,7 +49,7 @@ class Keithley27XXVISADriver:
         self.instr = ""
         self.configured_modules = {}
 
-    def init_hardware(self, pyvisa_backend='@ivi'):
+    def init_hardware(self, pyvisa_backend='@py'):
         """Initialize the selected VISA resource
         
         :param pyvisa_backend: Expects a pyvisa backend identifier or a path to the visa backend dll (ref. to pyvisa)
@@ -421,7 +421,7 @@ if __name__ == "__main__":
         # - Testing connexion and communication with your instrument
         # - Testing new methods in developer mode
 
-        RM = visa.ResourceManager("@ivi")
+        RM = visa.ResourceManager("@py")
         print("list resources", RM.list_resources())
 
         # K2700 Instance of KeithleyVISADriver class (replace ASRL1::INSTR by the name of your resource)
