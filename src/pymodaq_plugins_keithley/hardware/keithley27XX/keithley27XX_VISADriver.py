@@ -69,7 +69,7 @@ class Keithley27XXVISADriver:
             if "27" not in model:
                 logger.warning("Driver designed to use Keithley 27XX, not {} model. Problems may occur.".format(model))
             for instr in config["Keithley", "27XX"]:
-                if type(config["Keithley", "27XX", instr]) == dict:
+                if isinstance(config["Keithley", "27XX", instr], dict):
                     if self.rsrc_name in config["Keithley", "27XX", instr, "rsrc_name"]:
                         self.instr = instr
             logger.info("Instrument selected: {} ".format(config["Keithley", "27XX", self.instr, "rsrc_name"]))
@@ -130,7 +130,7 @@ class Keithley27XXVISADriver:
             for key in config["Keithley", "27XX", self.instr, module, "CHANNELS"].keys():
 
                 # Handling user mistakes if the channels' configuration section is not correctly set up
-                if not type(config["Keithley", "27XX", self.instr, module, 'CHANNELS', key]) == dict:
+                if not isinstance(config["Keithley", "27XX", self.instr, module, 'CHANNELS', key], dict):
                     logger.info("Channel {} not correctly defined, must be a dictionary" .format(key))
                     continue
                 if not config["Keithley", "27XX", self.instr, module, 'CHANNELS', key]:
