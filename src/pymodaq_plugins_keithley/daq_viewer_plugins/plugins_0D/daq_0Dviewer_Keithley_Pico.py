@@ -21,6 +21,7 @@ for name, rinfo in VISA_rm.list_resources_info().items():
     else:
         COM_PORTS.append(name)
 
+
 class DAQ_0DViewer_Keithley_Pico_type(BaseEnum):
     """
         Enum class of Keithley_Pico_type
@@ -51,7 +52,7 @@ class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
     """
     data_grabed_signal = Signal(list)
 
-    ##checking VISA ressources
+    # checking VISA ressources
 
 #    import serial.tools.list_ports;
 #    com_ports=[comport.device for comport in serial.tools.list_ports.comports()]
@@ -95,7 +96,7 @@ class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
 
         self.controller.write("*rst; status:preset; *cls;")
         txt = self.controller.query('*IDN?')
-        self.settings.child(('id')).setValue(txt)
+        self.settings.child('id').setValue(txt)
         self.controller.write('CONF:' + self.settings.child('config', 'meas_type').value())
         self.controller.write(':FORM:ELEM READ;DATA ASC;')
         self.controller.write('ARM:SOUR IMM;')
@@ -107,7 +108,6 @@ class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
         self.status.initialized = True
         self.status.controller = self.controller
         return self.status
-
 
     def commit_settings(self, param):
         """
@@ -127,7 +127,6 @@ class DAQ_0DViewer_Keithley_Pico(DAQ_Viewer_base):
                 self.controller.timeout = self.settings.child(('timeout')).value()
             elif param.name() == 'meas_type':
                 self.controller.write('CONF:' + param.value())
-
 
         except Exception as e:
             self.emit_status(ThreadCommand('Update_Status', [getLineInfo() + str(e), 'log']))
