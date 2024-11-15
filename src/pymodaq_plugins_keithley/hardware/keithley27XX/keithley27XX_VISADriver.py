@@ -1,7 +1,7 @@
 import numpy as np
 import pyvisa as visa
 from pymodaq_plugins_keithley import config
-from pymodaq.utils.logger import set_logger, get_module_name
+from pymodaq_utils.logger import set_logger, get_module_name
 logger = set_logger(get_module_name(__file__))
 
 

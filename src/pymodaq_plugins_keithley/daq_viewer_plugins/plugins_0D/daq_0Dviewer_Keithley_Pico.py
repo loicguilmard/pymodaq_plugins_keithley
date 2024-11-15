@@ -6,11 +6,11 @@ import numpy as np
 from pyvisa import ResourceManager
 from qtpy.QtCore import Signal
 
-from pymodaq.utils.daq_utils import ThreadCommand, getLineInfo
-from pymodaq.utils.data import  DataFromPlugins, DataToExport
+from pymodaq_utils.utils import ThreadCommand, getLineInfo
+from pymodaq.utils.data import  DataFromPlugins
+from pymodaq_data.data import DataToExport
 from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base, main, comon_parameters
-from pymodaq.utils.enums import BaseEnum
-
+from pymodaq_utils.enums import BaseEnum
 
 
 VISA_rm = ResourceManager()
